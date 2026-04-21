@@ -1,1 +1,9 @@
+Q1: FDB decouples these two components to improve scalability and fault tolerance/isolation. The TMS is in charge of handling writes as well as coordination tasks like transaction ordering, version assignment, and conflict detection, while the SS handles data persistence and reads. Separating these lets each layer scale independently and simplifies recovery as storage nodes do not need to manage transaction logic.
 
+Q2: TMS handles read-write conflicts during the commit phase. When a transaction tries to commit, the system checks if any of the keys read by the transaction were modified by other concurrent transactions; this occurs before the commit version is finalized, which ensures serializability by stopping conflicting transactions. 
+
+Q3: The purpose of the read version is to define a consistent snapshot of the database that a transaction reads. It ensures that all reads within a transaction see a stable and consistent state, even while other transactions are modifying data concurrently; this provides snapshot isolation, as reads do not see future or uncommited writes.
+
+Q4: Snapshot reads differ from standard reads in that they do not handle conflict detection; they do not track read versions for validation at commit time. On the other hand, standard reads are tracked for read-write conflict detection to ensure serializability. Snapshot reads are used when high performance and low latency are necessary and strict transactional consistency is not required (ie. in analytics or monitoring queries).
+
+Q5: Recovery is "cheap" because of separating write durability into LogServers and data persistence into StorageServers. LogServers store the ordered log of committed changes, while StorageServers apply those changes to data in the background. Since all committed writes are already stored in the logs, recovery does not need to rebuild everything from scratch, making restarting the system faster and simpler.
